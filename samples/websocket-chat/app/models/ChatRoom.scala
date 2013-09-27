@@ -19,11 +19,34 @@ import org.mandubian.ezws._
 class Receiver extends Actor {
   def receive = {
     case Received(from, js: JsValue) =>
-      val msg = (js \ "text").as[String]
-      context.parent ! Broadcast(
-        from,
-        ChatRoom.buildMsg("talk", from, msg)
-      )
+      /*js \ "text" match {
+        case "text" =>
+          
+          context.parent ! Broadcast(
+            from,
+            ChatRoom.buildMsg("talk", from, msg)
+          )
+        case _ =>
+          context.parent ! Broadcast(
+            from,
+            ChatRoom.buildMsg("talk", from, "Unrecognized json!")
+          )
+      }*/
+      (js \ "kind").as[String] match {
+        case "talk" =>
+          val msg = (js \ "text").as[String]
+          context.parent ! Broadcast(
+            from,
+            ChatRoom.buildMsg("talk", from, msg)
+          )
+        case "move" =>
+          val position = (js \ "position").as[JsValue]
+          context.parent ! Broadcast(
+            from,
+            ChatRoom.buildMsg("move", from, position.toString)
+          )
+      }
+      
   }
 }
 
